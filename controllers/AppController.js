@@ -7,7 +7,7 @@ class AppController {
   // eslint-disable-next-line class-methods-use-this
   static async getStatus(req, res) {
     const redisStatus = redisClient.isAlive();
-    const dbStatus = dbClient.collection;
+    const dbStatus = dbClient.isAlive();
 
     res.status(200).json({ redis: redisStatus, db: dbStatus });
   }
