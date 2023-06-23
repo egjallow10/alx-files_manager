@@ -1,12 +1,20 @@
-const express = require('express');
+const redisClient = require('../utils/redis');
+const dbClient = require('../utils/db');
 
-const app = express();
-const port = process.env.PORT || 5000;
+const AppController = {
+  getStatus: async (req, res) => {
+    const redisStatus = await redisClient.isAlive();
+    const dbStatus = await dbClient.isAlive();
 
-const routes = require('./routes/index');
+    res.status(200).json({ redis: redisStatus, db: dbStatus });
+  },
 
-app.use('/', routes);
+  getStats: async (req, res) => {
+    const usersCount = await dbClient.nbUsers();
+    const filesCount = await dbClient.nbFiles();
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+    res.status(200).json({ users: usersCount, files: filesCount });
+  },
+};
+
+module.exports = AppController;
