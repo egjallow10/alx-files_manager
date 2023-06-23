@@ -1,20 +1,24 @@
-const redisClient = require('../utils/redis');
-const dbClient = require('../utils/db');
+import dbClient from '../utils/db';
 
-const AppController = {
-  getStatus: async (req, res) => {
-    const redisStatus = await redisClient.isAlive();
-    const dbStatus = await dbClient.isAlive();
+const redisClient = require('../utils/redis');
+// const dbClient = require('../utils/db');
+
+class AppController {
+  // eslint-disable-next-line class-methods-use-this
+  static async getStatus(req, res) {
+    const redisStatus = redisClient.isAlive();
+    const dbStatus = dbClient.collection;
 
     res.status(200).json({ redis: redisStatus, db: dbStatus });
-  },
+  }
 
-  getStats: async (req, res) => {
-    const usersCount = await dbClient.nbUsers();
-    const filesCount = await dbClient.nbFiles();
+  // eslint-disable-next-line class-methods-use-this
+  static async getStats(req, res) {
+    const usersCount = await dbClient.db.collection('users').countDocuments();
+    const filesCount = await dbClient.db.collection('files').countDocuments();
 
     res.status(200).json({ users: usersCount, files: filesCount });
-  },
-};
+  }
+}
 
 module.exports = AppController;
