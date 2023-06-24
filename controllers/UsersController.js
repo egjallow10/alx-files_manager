@@ -1,28 +1,39 @@
+// eslint-disable-next-line no-unused-vars
+import { request, response } from 'express';
 import crypto from 'crypto';
 import dbClient from '../utils/db';
 
 class UsersController {
-  static async postNew(req, res) {
-    const { password, email } = req.body;
+  static async postNew(request, response) {
+    const { password, email } = request.body;
     const userDb = dbClient.users;
+
     if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
+      return response.status(400).json({ error: 'Missing email' });
     }
+
     if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
+      return response.status(400).json({ error: 'Missing password' });
     }
-    const foundUser = userDb.find({ email });
+
+    const foundUser = await userDb.findOne({ email });
     if (foundUser) {
-      return res.status(400).json({ error: 'Already exist' });
+      return response.status(400).json({ error: 'Already exist' });
     }
+
     const passwordHash = crypto
       .createHash('sha1')
       .update(password)
       .digest('hex');
-    const newUser = await userDb.insertOne({ password: passwordHash, email });
-    const userObj = { id: newUser.ops[0]._id, email: newUser.ops[0].email };
+    const newUser = {
+      email,
+      password: passwordHash,
+    };
 
-    return res.status(201).json(userObj);
+    const result = await userDb.insertOne(newUser);
+    const userObj = { id: result.insertedId, email };
+
+    return response.status(201).json(userObj);
   }
 }
 
