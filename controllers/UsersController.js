@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import { request, response } from 'express';
 import crypto from 'crypto';
+import { ObjectID } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -29,7 +30,7 @@ class UsersController {
     const newUser = {
       email,
       password: passwordHash,
-    };
+    }; // contains email and password
 
     const result = await userDb.insertOne(newUser);
     const userObj = { id: result.insertedId, email };
@@ -37,19 +38,24 @@ class UsersController {
     return response.status(201).json(userObj);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  static async getMe(req, res) {
-    const token = req.headers['x-token'];
-
-    const user = await dbClient.users.findById(
-      redisClient.get(`auth_${token}`)
-    );
-
-    if (!user) {
-      return res.status(401).send('Unauthorized');
+  static async getMe(request, response) {
+    const token = request.header('X-Token');
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (userId) {
+      const users = dbClient.db.collection('users');
+      const objectId = new ObjectID(userId);
+      users.findOne({ _id: objectId }, (err, user) => {
+        if (user) {
+          response.status(200).json({ id: userId, email: user.email });
+        } else {
+          response.status(401).json({ error: 'Unauthorized' });
+        }
+      });
+    } else {
+      // console.log('Hupatikani!');
+      response.status(401).json({ error: 'Unauthorized' });
     }
-
-    return res.json({ email: user.email, id: user.id });
   }
 }
 
