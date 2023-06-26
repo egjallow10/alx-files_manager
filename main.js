@@ -1,6 +1,7 @@
 import dbClient from './utils/db';
 
 const waitConnection = () =>
+  // eslint-disable-next-line implicit-arrow-linebreak
   new Promise((resolve, reject) => {
     let i = 0;
     const repeatFct = async () => {

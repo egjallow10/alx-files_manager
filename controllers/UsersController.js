@@ -2,11 +2,13 @@
 import { request, response } from 'express';
 import crypto from 'crypto';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
 class UsersController {
   static async postNew(request, response) {
     const { password, email } = request.body;
     const userDb = dbClient.users;
+    const salt = crypto.randomBytes(16);
 
     if (!email) {
       return response.status(400).json({ error: 'Missing email' });
@@ -22,9 +24,8 @@ class UsersController {
     }
 
     const passwordHash = crypto
-      .createHash('sha1')
-      .update(password)
-      .digest('hex');
+      .pbkdf2Sync(password, salt, 10000, 64)
+      .toString('hex');
     const newUser = {
       email,
       password: passwordHash,
@@ -34,6 +35,21 @@ class UsersController {
     const userObj = { id: result.insertedId, email };
 
     return response.status(201).json(userObj);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  static async getMe(req, res) {
+    const token = req.headers['x-token'];
+
+    const user = await dbClient.users.findById(
+      redisClient.get(`auth_${token}`)
+    );
+
+    if (!user) {
+      return res.status(401).send('Unauthorized');
+    }
+
+    return res.json({ email: user.email, id: user.id });
   }
 }
 
