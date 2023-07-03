@@ -39,9 +39,11 @@ class UsersController {
   }
 
   static async getMe(request, response) {
+    console.log('********************************');
     const token = request.header('X-Token');
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
+    console.log(userId);
     if (userId) {
       const users = dbClient.db.collection('users');
       const objectId = new ObjectID(userId);
