@@ -1,4 +1,5 @@
 /* eslint-disable import/prefer-default-export */
+import fs from 'fs';
 import dbClient from './db';
 import redisClient from './redis';
 
@@ -18,4 +19,19 @@ export const getUserIdFromToken = async (token) => {
   const key = `auth_${token}`;
   const userId = await redisClient.get(key);
   return userId;
+};
+
+export const writeFile = (name, type, data) => {
+  const path = `/tmp/files_manager/${name}`;
+  let fileData = Buffer.from(data, 'base64');
+
+  if (type !== 'image') {
+    fileData = fileData.toString('utf8');
+  }
+
+  fs.writeFile(path, fileData, { flag: 'w' }, (err) => {
+    if (err) throw err;
+  });
+
+  return path;
 };

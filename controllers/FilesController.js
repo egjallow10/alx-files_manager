@@ -1,12 +1,17 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable indent */
 
-import { getFileById, createFile, getUserIdFromToken } from '../utils/helper';
+// import { uuidv4 } from 'uuidv4';
+import {
+  getFileById,
+  createFile,
+  getUserIdFromToken,
+  writeFile,
+} from '../utils/helper';
 
 const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
-const path = require('path');
 
+// eslint-disable-next-line no-unused-vars
 const { FOLDER_PATH } = process.env;
 // Get the storing folder path from environment variables
 
@@ -66,28 +71,15 @@ class FilesController {
       isPublic: isPublic || false,
     };
 
-    if (type === 'folder') {
-      const createdFile = await createFile(newFile);
-      // Create local storing folder path if FOLDER_PATH is not defined
-      const storingFolderPath = FOLDER_PATH || '/tmp/files_manager';
-      const filePath = path.join(storingFolderPath, `${uuidv4()}`);
-
-      // Write file content to local path
-      const fileContent = Buffer.from(data, 'base64');
-      fs.writeFileSync(filePath, fileContent);
-
-      newFile.localPath = filePath;
-
-      res.status(201).json(createdFile);
+    if (type !== 'folder') {
+      newFile.data = data;
+      newFile.path = writeFile(uuidv4(), type, data);
+      res.status(201).json(newFile.path);
     } else {
       const createdFile = await createFile(newFile);
-      console.log(newFile);
-
       res.status(201).json(createdFile);
     }
   }
-
-  // Helper functions for database operations (replace with actual implementation)
 }
 
 export default FilesController;
