@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-var sha1 = require('sha1');
+const sha1 = require('sha1');
 
 sha1('message');
 class UsersController {
@@ -55,7 +55,6 @@ class UsersController {
         }
       });
     } else {
-      // console.log('Hupatikani!');
       response.status(401).json({ error: 'Unauthorized' });
     }
   }
