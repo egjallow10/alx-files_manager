@@ -4,7 +4,9 @@ import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+var sha1 = require('sha1');
 
+sha1('message');
 class UsersController {
   static async postNew(request, response) {
     const { password, email } = request.body;
@@ -24,13 +26,11 @@ class UsersController {
       return response.status(400).json({ error: 'Already exist' });
     }
 
-    const passwordHash = crypto
-      .pbkdf2Sync(password, salt, 10000, 64)
-      .toString('hex');
+    const passwordHash = sha1(password);
     const newUser = {
       email,
       password: passwordHash,
-    }; // contains email and password
+    };
 
     const result = await userDb.insertOne(newUser);
     const userObj = { id: result.insertedId, email };
