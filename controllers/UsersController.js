@@ -1,17 +1,15 @@
 // eslint-disable-next-line no-unused-vars
 import { request, response } from 'express';
-import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+
 const sha1 = require('sha1');
 
-sha1('message');
 class UsersController {
   static async postNew(request, response) {
     const { password, email } = request.body;
     const userDb = dbClient.users;
-    const salt = crypto.randomBytes(16);
 
     if (!email) {
       return response.status(400).json({ error: 'Missing email' });
